@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>AI Model Lab</title>
+    <style>
+      :root {
+        --bg: #f6f7f9;
+        --card: #fff;
+        --tx: #14181f;
+        --mut: #667085;
+        --bd: #e3e6eb;
+        --ac: #4f46e5;
+        --ac2: #eef0ff;
+        --ok: #0f9d6b;
+        box-sizing: border-box;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #0f1218;
+          --card: #181c25;
+          --tx: #eceff4;
+          --mut: #9aa3b2;
+          --bd: #2a303c;
+          --ac: #8b85ff;
+          --ac2: #232553;
+          --ok: #34d399;
+          color-scheme: dark;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #0f1218;
+        --card: #181c25;
+        --tx: #eceff4;
+        --mut: #9aa3b2;
+        --bd: #2a303c;
+        --ac: #8b85ff;
+        --ac2: #232553;
+        --ok: #34d399;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-padding-top: env(safe-area-inset-top, 0px);
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--tx);
+        font:
+          15px/1.5 system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+      }
+      .w {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 20px 16px 48px;
+      }
+      h1 {
+        font-size: 24px;
+        margin: 0;
+      }
+      h2 {
+        font-size: 17px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: var(--mut);
+        margin: 2px 0 18px;
+      }
+      .steps {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+      }
+      .st {
+        flex: 1;
+        min-width: 120px;
+        padding: 9px 12px;
+        border: 1px solid var(--bd);
+        border-radius: 10px;
+        background: var(--card);
+        color: var(--mut);
+        font-size: 13px;
+      }
+      .st b {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        line-height: 20px;
+        text-align: center;
+        border-radius: 50%;
+        background: var(--bd);
+        color: var(--tx);
+        margin-right: 6px;
+        font-size: 12px;
+      }
+      .st.on {
+        border-color: var(--ac);
+        color: var(--tx);
+        background: var(--ac2);
+      }
+      .st.on b {
+        background: var(--ac);
+        color: #fff;
+      }
+      .st.done b {
+        background: var(--ok);
+        color: #fff;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--bd);
+        border-radius: 14px;
+        padding: 18px;
+        margin-bottom: 14px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 10px;
+      }
+      .m {
+        border: 1.5px solid var(--bd);
+        border-radius: 12px;
+        padding: 12px;
+        cursor: pointer;
+        display: block;
+      }
+      .m.sel {
+        border-color: var(--ac);
+        background: var(--ac2);
+      }
+      .m input {
+        margin-right: 6px;
+      }
+      .m small {
+        display: block;
+        color: var(--mut);
+        margin-top: 4px;
+      }
+      textarea {
+        width: 100%;
+        min-height: 140px;
+        border: 1px solid var(--bd);
+        border-radius: 10px;
+        padding: 10px;
+        font: inherit;
+        background: var(--bg);
+        color: var(--tx);
+      }
+      button {
+        font: inherit;
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 18px;
+        cursor: pointer;
+        background: var(--ac);
+        color: #fff;
+        font-weight: 600;
+      }
+      button.g {
+        background: transparent;
+        color: var(--tx);
+        border: 1px solid var(--bd);
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+        margin-top: 14px;
+        flex-wrap: wrap;
+      }
+      .bar {
+        height: 10px;
+        background: var(--bd);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        background: var(--ac);
+        transition: width 0.2s;
+      }
+      .kp {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .k {
+        background: var(--card);
+        border: 1px solid var(--bd);
+        border-radius: 12px;
+        padding: 12px;
+      }
+      .k span {
+        color: var(--mut);
+        font-size: 12px;
+      }
+      .k div {
+        font-size: 21px;
+        font-weight: 700;
+      }
+      .sc {
+        overflow-x: auto;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 14px;
+      }
+      th,
+      td {
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--bd);
+        text-align: left;
+        white-space: nowrap;
+      }
+      th {
+        color: var(--mut);
+        font-weight: 600;
+        font-size: 12px;
+      }
+      .tag {
+        font-size: 11px;
+        background: var(--ac2);
+        color: var(--ac);
+        border-radius: 20px;
+        padding: 2px 8px;
+        margin-left: 4px;
+      }
+      .cr {
+        display: grid;
+        grid-template-columns: 110px 1fr 70px;
+        gap: 8px;
+        align-items: center;
+        margin: 6px 0;
+        font-size: 13px;
+      }
+      .resp {
+        border-left: 3px solid var(--ac);
+        padding: 4px 10px;
+        margin: 8px 0;
+        font-size: 14px;
+      }
+      .resp small {
+        color: var(--mut);
+      }
+      details {
+        margin-top: 8px;
+      }
+      summary {
+        cursor: pointer;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="w">
+      <h1>AI Model Lab</h1>
+      <p class="sub">
+        Compare quality, speed, token usage and cost across AI models. Demo runs
+        on built-in sample data, with no API keys needed.
+      </p>
+      <div class="steps" id="steps"></div>
+      <div id="view"></div>
+      <div class="card">
+        <h2>How it works</h2>
+        <p class="sub" style="margin-bottom: 8px">
+          Each model has a profile (typical latency, output speed, verbosity,
+          base quality, price per 1M tokens). A test run generates a repeatable
+          simulated answer per question and model, then measures:
+        </p>
+        <ul style="margin: 0; padding-left: 20px; color: var(--mut)">
+          <li>
+            <b>Speed</b>: time to first token + output tokens ÷ tokens per
+            second.
+          </li>
+          <li>
+            <b>Tokens</b>: input ≈ words × 1.3; output depends on the model's
+            verbosity.
+          </li>
+          <li>
+            <b>Cost</b>: (input × input price + output × output price) ÷
+            1,000,000.
+          </li>
+          <li>
+            <b>Quality</b>: a 1–10 sample score. In production, replace it with
+            human ratings or an LLM judge.
+          </li>
+        </ul>
+        <p class="sub" style="margin: 10px 0 0">
+          To go live, replace <code>callModel()</code> in the page script with a
+          real API request and read the latency and token counts from its
+          response.
+        </p>
+      </div>
+    </div>
+    <script>
+      const MODELS = [
+        {
+          id: "orion-pro",
+          name: "Orion Pro",
+          d: "Flagship, best reasoning",
+          ttft: 900,
+          tps: 55,
+          verb: 1.4,
+          q: 8.8,
+          pin: 5,
+          pout: 25,
+        },
+        {
+          id: "orion-mini",
+          name: "Orion Mini",
+          d: "Fast and low cost",
+          ttft: 300,
+          tps: 140,
+          verb: 0.8,
+          q: 7.2,
+          pin: 0.25,
+          pout: 1.25,
+        },
+        {
+          id: "nova-large",
+          name: "Nova Large",
+          d: "Balanced all-rounder",
+          ttft: 650,
+          tps: 80,
+          verb: 1.1,
+          q: 8.2,
+          pin: 3,
+          pout: 15,
+        },
+        {
+          id: "pebble-open",
+          name: "Pebble Open",
+          d: "Open-weight, self-hosted",
+          ttft: 500,
+          tps: 95,
+          verb: 1.0,
+          q: 7.6,
+          pin: 0.6,
+          pout: 0.9,
+        },
+      ];
+      const SAMPLE = [
+        "What is the difference between machine learning and deep learning?",
+        "Explain what an API is to a ten-year-old.",
+        "Write a polite email asking my manager for a day off next Friday.",
+        "Summarise the benefits of remote work in three sentences.",
+        "What are the main risks of storing passwords in plain text?",
+      ];
+      const ANS = {
+        0: "Machine learning is the broad field where systems learn patterns from data. Deep learning is a subset that uses many-layered neural networks, and it excels at images, speech and language.",
+        1: "An API is like a waiter in a restaurant: you tell the waiter what you want, they bring your order from the kitchen, and you never need to see how it is cooked.",
+        2: "Subject: Day off request. Hi [Manager], I would like to request next Friday off. I will make sure my tasks are covered beforehand. Thank you for considering it.",
+        3: "Remote work saves commuting time and cost. It gives people flexibility and often better focus. It also widens the hiring pool beyond one city.",
+        4: "Anyone who gains access to the database can read every password directly. Because people reuse passwords, one breach can compromise their other accounts too.",
+      };
+      let S = {
+        step: 1,
+        sel: new Set(["orion-pro", "orion-mini", "nova-large"]),
+        qs: SAMPLE.join("\n"),
+        res: null,
+        prog: 0,
+      };
+      const $ = (s) => document.querySelector(s);
+      function hash(s) {
+        let h = 2166136261;
+        for (const c of s) {
+          h ^= c.charCodeAt(0);
+          h = Math.imul(h, 16777619);
+        }
+        return (h >>> 0) / 4294967295;
+      }
+      const wc = (t) => t.trim().split(/\s+/).length;
+      function callModel(m, q, i) {
+        const r = hash(m.id + q),
+          r2 = hash(q + m.id + "x"),
+          base =
+            ANS[SAMPLE.indexOf(q)] ||
+            "This is a simulated answer to your custom question. Connect a real API in callModel() to see live responses.";
+        const words = Math.round(wc(base) * m.verb);
+        const text =
+          m.verb < 0.9
+            ? base.split(". ").slice(0, 2).join(". ").replace(/\.?$/, ".")
+            : m.verb > 1.2
+              ? base +
+                " In short, the right choice depends on your context and goals, so consider the trade-offs before deciding."
+              : base;
+        const tin = Math.round(wc(q) * 1.3 + 12),
+          tout = Math.round(words * 1.35 + 10 * r);
+        const ms = Math.round(
+          m.ttft * (0.85 + 0.3 * r) + (tout / m.tps) * 1000,
+        );
+        const cost = (tin * m.pin + tout * m.pout) / 1e6;
+        const quality = Math.max(
+          1,
+          Math.min(10, +(m.q + (r2 - 0.5) * 1.6).toFixed(1)),
+        );
+        return { text, tin, tout, ms, cost, quality };
+      }
+      const sleep = (t) => new Promise((r) => setTimeout(r, t));
+      async function run() {
+        const qs = S.qs
+            .split("\n")
+            .map((x) => x.trim())
+            .filter(Boolean),
+          ms = MODELS.filter((m) => S.sel.has(m.id));
+        const total = qs.length * ms.length;
+        let n = 0;
+        S.res = { qs, ms, rows: [] };
+        S.step = 3;
+        S.prog = 0;
+        draw();
+        for (const q of qs) {
+          for (const m of ms) {
+            await sleep(180);
+            S.res.rows.push({ q, m, ...callModel(m, q) });
+            n++;
+            S.prog = n / total;
+            $("#pb").style.width = S.prog * 100 + "%";
+            $("#pt").textContent = `Running ${n} of ${total}…`;
+          }
+        }
+        S.step = 4;
+        draw();
+      }
+      function stats() {
+        const R = S.res,
+          avg = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+        return R.ms.map((m) => {
+          const r = R.rows.filter((x) => x.m === m);
+          return {
+            m,
+            ms: avg(r.map((x) => x.ms)),
+            tin: r.reduce((a, x) => a + x.tin, 0),
+            tout: r.reduce((a, x) => a + x.tout, 0),
+            cost: r.reduce((a, x) => a + x.cost, 0),
+            q: avg(r.map((x) => x.quality)),
+          };
+        });
+      }
+      function steps() {
+        const L = [
+          "Select models",
+          "Enter questions",
+          "Run tests",
+          "Compare results",
+        ];
+        $("#steps").innerHTML = L.map(
+          (l, i) =>
+            `<div class="st ${S.step == i + 1 ? "on" : ""} ${S.step > i + 1 ? "done" : ""}"><b>${S.step > i + 1 ? "✓" : i + 1}</b>${l}</div>`,
+        ).join("");
+      }
+      function chart(title, st, key, fmt, low) {
+        const mx = Math.max(...st.map((s) => s[key])),
+          best = st.reduce((a, b) =>
+            (low ? b[key] < a[key] : b[key] > a[key]) ? b : a,
+          );
+        return `<div class="card"><h2>${title}</h2>${st.map((s) => `<div class="cr"><span>${s.m.name}</span><div class="bar"><i style="width:${(s[key] / mx) * 100}%;${s === best ? "background:var(--ok)" : ""}"></i></div><b>${fmt(s[key])}</b></div>`).join("")}</div>`;
+      }
+      function draw() {
+        steps();
+        const v = $("#view");
+        if (S.step == 1) {
+          v.innerHTML = `<div class="card"><h2>1. Select AI models</h2><p class="sub">Pick at least two to compare.</p><div class="grid">${MODELS.map((m) => `<label class="m ${S.sel.has(m.id) ? "sel" : ""}"><input type="checkbox" data-id="${m.id}" ${S.sel.has(m.id) ? "checked" : ""}><b>${m.name}</b><small>${m.d}</small><small>$${m.pin} in / $${m.pout} out per 1M tokens</small></label>`).join("")}</div><div class="row"><span></span><button id="n1" ${S.sel.size < 2 ? "disabled" : ""}>Next: enter questions →</button></div></div>`;
+          v.querySelectorAll("input").forEach(
+            (i) =>
+              (i.onchange = () => {
+                i.checked
+                  ? S.sel.add(i.dataset.id)
+                  : S.sel.delete(i.dataset.id);
+                draw();
+              }),
+          );
+          $("#n1").onclick = () => {
+            S.step = 2;
+            draw();
+          };
+        } else if (S.step == 2) {
+          v.innerHTML = `<div class="card"><h2>2. Enter questions</h2><p class="sub">One question per line. Sample questions are preloaded.</p><textarea id="qs">${S.qs}</textarea><div class="row"><button class="g" id="b2">← Back</button><div><button class="g" id="rs">Reset samples</button> <button id="go">▶ Run tests</button></div></div></div>`;
+          $("#qs").oninput = (e) => (S.qs = e.target.value);
+          $("#b2").onclick = () => {
+            S.step = 1;
+            draw();
+          };
+          $("#rs").onclick = () => {
+            S.qs = SAMPLE.join("\n");
+            draw();
+          };
+          $("#go").onclick = () => {
+            if (S.qs.trim()) run();
+          };
+        } else if (S.step == 3) {
+          v.innerHTML = `<div class="card"><h2>3. Running tests</h2><p class="sub" id="pt">Starting…</p><div class="bar"><i id="pb" style="width:0"></i></div></div>`;
+        } else {
+          const st = stats(),
+            t = (a) => a.reduce((x, y) => x + y, 0),
+            fast = st.reduce((a, b) => (b.ms < a.ms ? b : a)),
+            cheap = st.reduce((a, b) => (b.cost < a.cost ? b : a)),
+            top = st.reduce((a, b) => (b.q > a.q ? b : a));
+          const tags = (s) =>
+            (s === fast ? '<span class="tag">Fastest</span>' : "") +
+            (s === cheap ? '<span class="tag">Cheapest</span>' : "") +
+            (s === top ? '<span class="tag">Best quality</span>' : "");
+          v.innerHTML = `<div class="kp"><div class="k"><span>Best quality</span><div>${top.m.name}</div></div><div class="k"><span>Fastest (avg)</span><div>${fast.m.name}</div></div><div class="k"><span>Lowest cost</span><div>${cheap.m.name}</div></div><div class="k"><span>Total tokens</span><div>${t(st.map((s) => s.tin + s.tout)).toLocaleString()}</div></div><div class="k"><span>Total est. cost</span><div>$${t(st.map((s) => s.cost)).toFixed(4)}</div></div></div>
+<div class="card"><h2>Model comparison</h2><div class="sc"><table><tr><th>Model</th><th>Quality /10</th><th>Avg speed</th><th>Input tok</th><th>Output tok</th><th>Est. cost</th></tr>${st.map((s) => `<tr><td><b>${s.m.name}</b>${tags(s)}</td><td>${s.q.toFixed(1)}</td><td>${(s.ms / 1000).toFixed(2)} s</td><td>${s.tin}</td><td>${s.tout}</td><td>$${s.cost.toFixed(5)}</td></tr>`).join("")}</table></div></div>
+${chart("Quality (higher is better)", st, "q", (x) => x.toFixed(1))}${chart("Average response time (lower is better)", st, "ms", (x) => (x / 1000).toFixed(2) + " s", 1)}${chart("Estimated cost (lower is better)", st, "cost", (x) => "$" + x.toFixed(5), 1)}
+<div class="card"><h2>Responses by question</h2>${S.res.qs
+            .map(
+              (q) =>
+                `<details><summary>${q.replace(/</g, "&lt;")}</summary>${S.res.rows
+                  .filter((r) => r.q === q)
+                  .map(
+                    (r) =>
+                      `<div class="resp"><b>${r.m.name}</b> <small>Quality ${r.quality} · ${(r.ms / 1000).toFixed(2)} s · ${r.tin + r.tout} tokens · $${r.cost.toFixed(5)}</small><div>${r.text}</div></div>`,
+                  )
+                  .join("")}</details>`,
+            )
+            .join("")}</div>
+<div class="row"><button class="g" id="ed">← Edit questions</button><button id="nw">New test</button></div>
+<p class="sub">All figures are simulated sample data for demonstration.</p>`;
+          $("#ed").onclick = () => {
+            S.step = 2;
+            draw();
+          };
+          $("#nw").onclick = () => {
+            S.step = 1;
+            S.res = null;
+            draw();
+          };
+        }
+      }
+      draw();
+    </script>
+  </body>
+</html>
